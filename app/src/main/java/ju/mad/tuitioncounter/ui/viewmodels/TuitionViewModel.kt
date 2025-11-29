@@ -4,15 +4,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ju.mad.tuitioncounter.domain.model.TuitionModel
-import ju.mad.tuitioncounter.domain.repository.TuitionRepository
-import ju.mad.tuitioncounter.domain.usecase.GetTuitionListUseCase
 import ju.mad.tuitioncounter.domain.usecase.AddTuitionUseCase
+import ju.mad.tuitioncounter.domain.usecase.DeleteTuitionUseCase
+import ju.mad.tuitioncounter.domain.usecase.GetTuitionListUseCase
+import ju.mad.tuitioncounter.domain.usecase.ResetClassCountUseCase
+import ju.mad.tuitioncounter.domain.usecase.UpdateTuitionUseCase
 import kotlinx.coroutines.launch
 
 class TuitionViewModel(
     private val getTuitionListUseCase: GetTuitionListUseCase,
     private val addTuitionUseCase: AddTuitionUseCase,
-    private val tuitionRepository: TuitionRepository
+    private val updateTuitionUseCase: UpdateTuitionUseCase,
+    private val deleteTuitionUseCase: DeleteTuitionUseCase,
+    private val resetClassCountUseCase: ResetClassCountUseCase
 ) : ViewModel() {
 
     val tuitionList = mutableStateOf<List<TuitionModel>>(emptyList())
@@ -28,17 +32,28 @@ class TuitionViewModel(
     fun addTuition(tuition: TuitionModel) {
         viewModelScope.launch {
             addTuitionUseCase.execute(tuition)
+            getAllTuitions() // Refresh the list
         }
     }
-    fun resetClassCount(tuitionId: Long) {
+
+    fun updateTuition(tuition: TuitionModel) {
         viewModelScope.launch {
-            tuitionRepository.resetClassCount(tuitionId) // Call the reset method in the repository
+            updateTuitionUseCase.execute(tuition)
+            getAllTuitions() // Refresh the list
         }
     }
 
     fun deleteTuition(tuition: TuitionModel) {
         viewModelScope.launch {
-            tuitionRepository.deleteTuition(tuition)
+            deleteTuitionUseCase.execute(tuition)
+            getAllTuitions() // Refresh the list
+        }
+    }
+
+    fun resetClassCount(tuitionId: Long) {
+        viewModelScope.launch {
+            resetClassCountUseCase.invoke(tuitionId)
+            getAllTuitions() // Refresh the list
         }
     }
 }

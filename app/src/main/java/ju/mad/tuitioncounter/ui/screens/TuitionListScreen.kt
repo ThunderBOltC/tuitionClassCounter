@@ -3,9 +3,7 @@ package ju.mad.tuitioncounter.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -20,33 +18,43 @@ fun TuitionListScreen(
 ) {
     val tuitionList = viewModel.tuitionList.value
 
-    // Fetch tuitions when screen loads
     LaunchedEffect(Unit) {
         viewModel.getAllTuitions()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-           // Text(text = "Tuition List", modifier = Modifier.padding(bottom = 16.dp))
+            Text(
+                text = "Tuition List",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
             LazyColumn {
                 items(tuitionList) { tuition ->
-                    Button(
-                        onClick = {
-                            navController.navigate("tuition_detail_screen/${tuition.id}")
-                        },
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .height(80.dp)
+                            .padding(vertical = 4.dp),
+                        onClick = {
+                            navController.navigate("tuition_detail_screen/${tuition.id}")
+                        }
                     ) {
-                        Text(text = tuition.name)
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = tuition.name,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = "Progress: ${tuition.progress}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // FAB to add new tuition
         FloatingActionButton(
             onClick = { navController.navigate("add_tuition_screen") },
             modifier = Modifier
