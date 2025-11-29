@@ -9,6 +9,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import ju.mad.tuitioncounter.domain.model.TuitionModel
 import ju.mad.tuitioncounter.ui.viewmodels.TuitionViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun TuitionDetailScreen(
@@ -111,7 +114,10 @@ fun TuitionDetailScreen(
             Text(text = "Salary: ${tuition.salary}", modifier = Modifier.padding(vertical = 4.dp))
             Text(text = "Target Class: ${tuition.targetedClass}", modifier = Modifier.padding(vertical = 4.dp))
             Text(text = "Progress: ${tuition.progress}", modifier = Modifier.padding(vertical = 4.dp))
-            Text(text = "Start Date: ${java.text.SimpleDateFormat("dd/MM/yyyy").format(tuition.startDateEpochMs)}", modifier = Modifier.padding(vertical = 4.dp))
+            val formattedDate = remember(tuition.startDateEpochMs) {
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(tuition.startDateEpochMs))
+            }
+            Text(text = "Start Date: $formattedDate")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
