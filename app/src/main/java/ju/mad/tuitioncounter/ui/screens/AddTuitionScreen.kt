@@ -2,6 +2,7 @@ package ju.mad.tuitioncounter.ui.screens
 
 import android.app.DatePickerDialog
 import android.icu.text.SimpleDateFormat
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -115,15 +116,20 @@ fun AddTuitionScreen(
 
             Button(
                 onClick = {
-                    val tuition = TuitionModel(
-                        name = name,
-                        location = location,
-                        salary = salary.toDoubleOrNull() ?: 0.0,
-                        targetedClass = targetedClass.toIntOrNull() ?: 0,
-                        startDateEpochMs = startDate
-                    )
-                    viewModel.addTuition(tuition)
-                    navController.popBackStack()
+                    if (name.isBlank() || location.isBlank() || salary.isBlank() || targetedClass.isBlank()) {
+                        Toast.makeText(context, "Fields cannot be empty!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val tuition = TuitionModel(
+                            name = name,
+                            location = location,
+                            salary = salary.toDoubleOrNull() ?: 0.0,
+                            targetedClass = targetedClass.toIntOrNull() ?: 0,
+                            startDateEpochMs = startDate
+                        )
+                        viewModel.addTuition(tuition)
+                        Toast.makeText(context, "Tuition created successfully!", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
