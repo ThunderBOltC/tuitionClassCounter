@@ -216,6 +216,16 @@ fun TuitionDetailScreen(
             }
         }
 
+        // This is a good place for the "Reset Class Count" button
+        item {
+            OutlinedButton(
+                onClick = { viewModel.resetClassCount(tuitionId) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Reset Class Count")
+            }
+        }
+
 
         // Add Class Button
         item {
@@ -249,7 +259,7 @@ fun TuitionDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No classes logged yet",
+                            text = "No Class Conducted Yet",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -257,7 +267,7 @@ fun TuitionDetailScreen(
                 }
             }
         } else {
-            items(classLogs.reversed(), key = { it.id }) { classLog ->
+            items(classLogs, key = { it.id }) { classLog ->
                 val isSelected = classLog.id == selectedClassLogId
 
                 // Animation values for the "poppy" effect
@@ -319,8 +329,9 @@ fun TuitionDetailScreen(
                         // Show delete icon if this item is selected
                         if (isSelected) {
                             IconButton(onClick = {
-                                //viewModel.deleteClassLog(classLog)
-                                //selectedClassLogId = null // Deselect after deleting
+                                // This is where the delete logic from your snippet goes.
+                                viewModel.deleteClassLog(classLog.id)
+                                selectedClassLogId = null // Deselect after deleting
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
@@ -356,4 +367,3 @@ fun DetailRow(label: String, value: String) {
         )
     }
 }
-

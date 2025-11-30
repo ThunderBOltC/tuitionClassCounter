@@ -1,0 +1,10 @@
+// ResetClassCountUseCase.kt
+package ju.mad.tuitioncounter.domain.usecase
+
+import ju.mad.tuitioncounter.domain.repository.TuitionRepository
+
+class ResetClassCountUseCase(private val repository: TuitionRepository) {
+    suspend fun execute(tuitionId: Long) {
+        repository.resetClassCount(tuitionId)
+    }
+}

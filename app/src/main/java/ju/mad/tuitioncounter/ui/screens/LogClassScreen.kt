@@ -2,6 +2,7 @@ package ju.mad.tuitioncounter.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,7 +36,7 @@ fun LogClassScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Check,
+            imageVector = Icons.Default.AddCircle,
             contentDescription = "Log Class",
             modifier = Modifier.size(80.dp),
             tint = MaterialTheme.colorScheme.primary
@@ -44,7 +45,7 @@ fun LogClassScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Log Class for",
+            text = "Add new class for",
             style = MaterialTheme.typography.titleMedium
         )
 

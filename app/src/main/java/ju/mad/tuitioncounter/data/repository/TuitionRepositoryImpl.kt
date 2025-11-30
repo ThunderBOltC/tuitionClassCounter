@@ -8,6 +8,7 @@ import ju.mad.tuitioncounter.domain.model.ClassLogModel
 import ju.mad.tuitioncounter.domain.model.TuitionModel
 import ju.mad.tuitioncounter.domain.repository.TuitionRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class TuitionRepositoryImpl(private val tuitionDao: TuitionDao) : TuitionRepository {
@@ -66,5 +67,15 @@ class TuitionRepositoryImpl(private val tuitionDao: TuitionDao) : TuitionReposit
             entryTimestampMs = System.currentTimeMillis()
         )
         tuitionDao.insertClassLog(classLog)
+    }
+
+    override suspend fun deleteClassLog(classId: Long) {
+        val classLog = tuitionDao.getClassLogsForTuitionFlow(classId).first().find { it.id == classId }
+        classLog?.let { tuitionDao.deleteClassLog(it) }
+    }
+
+    // Reset the class count for a specific tuition (salary reset)
+    override suspend fun resetClassCount(tuitionId: Long) {
+        tuitionDao.deleteAllClassLogsForTuition(tuitionId) // delete all class logs for the tuition
     }
 }

@@ -49,4 +49,7 @@ interface TuitionDao {
 
     @Delete
     suspend fun deleteClassLog(log: ClassLogEntity)
+    @Query("DELETE FROM class_logs WHERE tuitionId = :tuitionId")
+    suspend fun deleteAllClassLogsForTuition(tuitionId: Long)
+
 }

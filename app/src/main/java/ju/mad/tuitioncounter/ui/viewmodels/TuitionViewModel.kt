@@ -18,7 +18,10 @@ class TuitionViewModel(
     private val addTuitionUseCase: AddTuitionUseCase,
     private val updateTuitionUseCase: UpdateTuitionUseCase,
     private val deleteTuitionUseCase: DeleteTuitionUseCase,
-    private val logClassUseCase: LogClassUseCase
+
+    private val logClassUseCase: LogClassUseCase,
+    private val deleteClassLogUseCase: DeleteClassLogUseCase, // New use case day6
+    private val resetClassCountUseCase: ResetClassCountUseCase, // New use case day6
 ) : ViewModel() {
 
     // Tuition List State
@@ -93,4 +96,21 @@ class TuitionViewModel(
             getAllTuitions() // Refresh main list
         }
     }
+
+    //day6 reset delete
+    fun deleteClassLog(classId: Long) {
+        viewModelScope.launch {
+            deleteClassLogUseCase.execute(classId)
+            // Refresh class logs and tuition details after deletion
+            getTuitionDetails(classId)
+        }
+    }
+    fun resetClassCount(tuitionId: Long) {
+        viewModelScope.launch {
+            resetClassCountUseCase.execute(tuitionId)
+            getTuitionDetails(tuitionId) // Refresh tuition details after reset
+            getClassLogs(tuitionId) // Refresh class logs list
+        }
+    }
+
 }
