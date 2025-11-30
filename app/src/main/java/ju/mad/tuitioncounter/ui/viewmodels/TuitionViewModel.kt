@@ -91,7 +91,7 @@ class TuitionViewModel(
 
 
     //day6 reset delete
-    fun deleteClassLog(classId: Long) {
+    fun deleteClassLog(classId: Long,tuitionId: Long) {
         viewModelScope.launch {
             deleteClassLogUseCase.execute(classId)
             // Refresh class logs and tuition details after deletion
@@ -113,7 +113,7 @@ class TuitionViewModel(
             logClassUseCase.execute(tuitionId, timestamp)
             getTuitionDetails(tuitionId)
             getClassLogs(tuitionId)
-            getAllTuitions()
+            //getAllTuitions()
         }
     }
 

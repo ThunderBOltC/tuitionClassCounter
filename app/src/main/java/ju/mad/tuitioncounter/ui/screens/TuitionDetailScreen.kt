@@ -330,7 +330,7 @@ fun TuitionDetailScreen(
                         if (isSelected) {
                             IconButton(onClick = {
                                 // This is where the delete logic from your snippet goes.
-                                viewModel.deleteClassLog(classLog.id)
+                                viewModel.deleteClassLog(classLog.id,tuitionId)
                                 selectedClassLogId = null // Deselect after deleting
                             }) {
                                 Icon(

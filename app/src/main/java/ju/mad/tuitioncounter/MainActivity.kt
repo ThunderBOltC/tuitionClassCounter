@@ -1,7 +1,5 @@
 package ju.mad.tuitioncounter
 
-
-
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -11,10 +9,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import ju.mad.tuitioncounter.data.database.TuitionDatabase
+// FIX: Import the new repository
+import ju.mad.tuitioncounter.data.repository.AiRepositoryImpl
 import ju.mad.tuitioncounter.data.repository.TuitionRepositoryImpl
+import ju.mad.tuitioncounter.data.service.AiService
+import ju.mad.tuitioncounter.data.service.RetrofitInstance
 import ju.mad.tuitioncounter.domain.usecase.*
 import ju.mad.tuitioncounter.ui.navigation.AppNavigation
 import ju.mad.tuitioncounter.ui.theme.TuitionCounterTheme
+import ju.mad.tuitioncounter.ui.viewmodels.AiCompanionViewModel
 import ju.mad.tuitioncounter.ui.viewmodels.TuitionViewModel
 
 class MainActivity : ComponentActivity() {
@@ -41,9 +44,13 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Initialize Database and Repository
+        // Initialize Database and Repositories
         val tuitionDao = TuitionDatabase.getDatabase(applicationContext).tuitionDao()
         val tuitionRepository = TuitionRepositoryImpl(tuitionDao)
+        // FIX: Create an instance of AiRepositoryImpl
+        val aiService = RetrofitInstance.api
+        val aiRepository = AiRepositoryImpl(aiService)
+
 
         // Initialize Use Cases
         val getTuitionListUseCase = GetTuitionListUseCase(tuitionRepository)
@@ -55,9 +62,12 @@ class MainActivity : ComponentActivity() {
         val logClassUseCase = LogClassUseCase(tuitionRepository)
         val deleteClassLogUseCase = DeleteClassLogUseCase(tuitionRepository)
         val resetClassCountUseCase = ResetClassCountUseCase(tuitionRepository)
+        // FIX: Pass the newly created aiRepository to the use case
+        val getAiResponseUseCase = GetAiResponseUseCase(aiRepository)
+
 
         // Initialize ViewModel with all use cases
-        val viewModel = TuitionViewModel(
+        val tuitionViewModel = TuitionViewModel(
             getTuitionListUseCase,
             getTuitionDetailsUseCase,
             getClassLogsUseCase,
@@ -68,10 +78,15 @@ class MainActivity : ComponentActivity() {
             deleteClassLogUseCase,
             resetClassCountUseCase
         )
+        val aiCompanionViewModel= AiCompanionViewModel(getAiResponseUseCase)
 
         setContent {
             TuitionCounterTheme {
-                AppNavigation(viewModel = viewModel)
+                // FIX: Correctly pass both ViewModels to the AppNavigation composable
+                AppNavigation(
+                    tuitionViewModel = tuitionViewModel,
+                    aiCompanionViewModel = aiCompanionViewModel
+                )
             }
         }
     }
