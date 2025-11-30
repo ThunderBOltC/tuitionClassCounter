@@ -9,23 +9,22 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import ju.mad.tuitioncounter.MainActivity
-import ju.mad.tuitioncounter.R
 
 object NotificationHelper {
 
     private const val CHANNEL_ID = "class_reminder_channel"
-    private const val NOTIFICATION_ID = 1002
-    const val ACTION_YES = "ACTION_YES"
+    const val NOTIFICATION_ID = 1002
     const val ACTION_NO = "ACTION_NO"
 
     fun showClassReminder(context: Context) {
         createNotificationChannel(context)
 
-        // Intent for "Yes" - just dismiss
-        val yesIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-            action = ACTION_YES
+        // Intent for "Yes" - Open the app
+        val yesIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("open_from_notification", true)
         }
-        val yesPendingIntent = PendingIntent.getBroadcast(
+        val yesPendingIntent = PendingIntent.getActivity(
             context,
             0,
             yesIntent,
@@ -36,12 +35,11 @@ object NotificationHelper {
             }
         )
 
-        // Intent for "No" - open app
-        val noIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("open_from_notification", true)
+        // Intent for "No" - Dismiss notification
+        val noIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = ACTION_NO
         }
-        val noPendingIntent = PendingIntent.getActivity(
+        val noPendingIntent = PendingIntent.getBroadcast(
             context,
             1,
             noIntent,
@@ -54,24 +52,24 @@ object NotificationHelper {
 
         // Build notification
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // Use system icon
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("Class Reminder")
-            .setContentText("Have you Added your classes today?")
+            .setContentText("Did you go to any of your Tuition today?")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setContentIntent(yesPendingIntent) // Tapping notification opens app
             .addAction(
                 android.R.drawable.ic_input_add,
                 "Yes",
                 yesPendingIntent
             )
             .addAction(
-                android.R.drawable.ic_menu_view,
+                android.R.drawable.ic_menu_close_clear_cancel,
                 "No",
                 noPendingIntent
             )
             .build()
 
-        // Show notification
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
     }
 
