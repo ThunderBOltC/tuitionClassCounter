@@ -1,7 +1,14 @@
 package ju.mad.tuitioncounter
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
+import ju.mad.tuitioncounter.util.ClassReminderScheduler
 
+class MyApplication : Application() {
 
-class MyApplication : Application()
+    override fun onCreate() {
+        super.onCreate()
+
+        // Schedule daily reminder
+        ClassReminderScheduler.scheduleReminder(applicationContext)
+    }
+}
