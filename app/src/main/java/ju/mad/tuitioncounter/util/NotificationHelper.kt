@@ -56,7 +56,7 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info) // Use system icon
             .setContentTitle("Class Reminder")
-            .setContentText("Have you logged your classes today?")
+            .setContentText("Have you Added your classes today?")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .addAction(

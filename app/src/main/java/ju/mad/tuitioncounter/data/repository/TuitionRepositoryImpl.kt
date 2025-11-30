@@ -70,9 +70,10 @@ class TuitionRepositoryImpl(private val tuitionDao: TuitionDao) : TuitionReposit
     }
 
     override suspend fun deleteClassLog(classId: Long) {
-        val classLog = tuitionDao.getClassLogsForTuitionFlow(classId).first().find { it.id == classId }
-        classLog?.let { tuitionDao.deleteClassLog(it) }
+        // Directly delete the class log based on classId
+        tuitionDao.deleteClassLog(ClassLogEntity(id = classId, tuitionId = 0, entryTimestampMs = 0)) // Use proper values if necessary
     }
+
 
     // Reset the class count for a specific tuition (salary reset)
     override suspend fun resetClassCount(tuitionId: Long) {
