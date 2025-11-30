@@ -20,18 +20,22 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Use Cases
         val getTuitionListUseCase = GetTuitionListUseCase(tuitionRepository)
+        val getTuitionDetailsUseCase = GetTuitionDetailsUseCase(tuitionRepository)
+        val getClassLogsUseCase = GetClassLogsUseCase(tuitionRepository)
         val addTuitionUseCase = AddTuitionUseCase(tuitionRepository)
         val updateTuitionUseCase = UpdateTuitionUseCase(tuitionRepository)
         val deleteTuitionUseCase = DeleteTuitionUseCase(tuitionRepository)
-        val resetClassCountUseCase = ResetClassCountUseCase(tuitionRepository)
+        val logClassUseCase = LogClassUseCase(tuitionRepository)
 
         // Initialize ViewModel
         val viewModel = TuitionViewModel(
             getTuitionListUseCase,
+            getTuitionDetailsUseCase,
+            getClassLogsUseCase,
             addTuitionUseCase,
             updateTuitionUseCase,
             deleteTuitionUseCase,
-            resetClassCountUseCase
+            logClassUseCase
         )
 
         setContent {

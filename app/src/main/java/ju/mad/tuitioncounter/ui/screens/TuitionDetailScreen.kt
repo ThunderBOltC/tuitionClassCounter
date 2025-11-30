@@ -1,46 +1,55 @@
 package ju.mad.tuitioncounter.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import ju.mad.tuitioncounter.domain.model.TuitionModel
 import ju.mad.tuitioncounter.ui.viewmodels.TuitionViewModel
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TuitionDetailScreen(
     navController: NavController,
     tuitionId: Long,
     viewModel: TuitionViewModel
 ) {
-    val context = LocalContext.current
-    val tuition = viewModel.tuitionList.value.find { it.id == tuitionId }
+    val tuitionDetails by viewModel.tuitionDetails.collectAsState()
+    val classLogs by viewModel.classLogs.collectAsState()
 
     var isEditing by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf(tuition?.name ?: "") }
-    var location by remember { mutableStateOf(tuition?.location ?: "") }
-    var salary by remember { mutableStateOf(tuition?.salary?.toString() ?: "") }
-    var targetedClass by remember { mutableStateOf(tuition?.targetedClass?.toString() ?: "") }
+    var name by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    var salary by remember { mutableStateOf("") }
+    var targetedClass by remember { mutableStateOf("") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    if (tuition == null) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp)
-        ) {
-            Text("Tuition not found")
-            Button(onClick = { navController.popBackStack() }) {
-                Text("Go Back")
-            }
-        }
-        return
+    // Load data when screen opens
+    LaunchedEffect(tuitionId) {
+        viewModel.getTuitionDetails(tuitionId)
+        viewModel.getClassLogs(tuitionId)
     }
 
+    // Update local state when tuition details change
+    LaunchedEffect(tuitionDetails) {
+        tuitionDetails?.let { tuition ->
+            name = tuition.name
+            location = tuition.location
+            salary = tuition.salary.toString()
+            targetedClass = tuition.targetedClass.toString()
+        }
+    }
+
+    // Delete Confirmation Dialog
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
@@ -49,7 +58,7 @@ fun TuitionDetailScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.deleteTuition(tuition)
+                        tuitionDetails?.let { viewModel.deleteTuition(it) }
                         showDeleteConfirmation = false
                         navController.popBackStack()
                     },
@@ -61,132 +70,222 @@ fun TuitionDetailScreen(
                 }
             },
             dismissButton = {
-                Button(
-                    onClick = { showDeleteConfirmation = false }
-                ) {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
                     Text("Cancel")
                 }
             }
         )
     }
 
-    Column(
+    if (tuitionDetails == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val tuition = tuitionDetails!!
+
+    // Use LazyColumn for the entire screen to make it all scrollable
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp), // Apply horizontal padding here
+        verticalArrangement = Arrangement.spacedBy(16.dp), // Spacing between items
+        contentPadding = PaddingValues(vertical = 16.dp) // Vertical padding for top/bottom
     ) {
-        Text(
-            text = "Tuition Details",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        if (isEditing) {
-            // Edit Mode
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        // Header
+        item {
+            Text(
+                text = "Tuition Details",
+                style = MaterialTheme.typography.headlineMedium
             )
-            TextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text("Location") },
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-            )
-            TextField(
-                value = salary,
-                onValueChange = { salary = it },
-                label = { Text("Salary") },
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-            )
-            TextField(
-                value = targetedClass,
-                onValueChange = { targetedClass = it },
-                label = { Text("Target Class") },
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-            )
-        } else {
-            // View Mode
-            Text(text = "Name: ${tuition.name}", modifier = Modifier.padding(vertical = 4.dp))
-            Text(text = "Location: ${tuition.location}", modifier = Modifier.padding(vertical = 4.dp))
-            Text(text = "Salary: ${tuition.salary}", modifier = Modifier.padding(vertical = 4.dp))
-            Text(text = "Target Class: ${tuition.targetedClass}", modifier = Modifier.padding(vertical = 4.dp))
-            Text(text = "Progress: ${tuition.progress}", modifier = Modifier.padding(vertical = 4.dp))
-            val formattedDate = remember(tuition.startDateEpochMs) {
-                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(tuition.startDateEpochMs))
-            }
-            Text(text = "Start Date: $formattedDate")
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Action Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
+        // Details Section
+        item {
             if (isEditing) {
-                // Save Button
-                Button(
-                    onClick = {
-                        val updatedTuition = TuitionModel(
-                            id = tuition.id,
-                            name = name,
-                            location = location,
-                            salary = salary.toDoubleOrNull() ?: 0.0,
-                            targetedClass = targetedClass.toIntOrNull() ?: 0,
-                            classCount = tuition.classCount,
-                            startDateEpochMs = tuition.startDateEpochMs
-                        )
-                        viewModel.updateTuition(updatedTuition)
-                        isEditing = false
-                    }
-                ) {
-                    Text("Save")
-                }
-                // Cancel Button
-                Button(
-                    onClick = {
-                        isEditing = false
-                        name = tuition.name
-                        location = tuition.location
-                        salary = tuition.salary.toString()
-                        targetedClass = tuition.targetedClass.toString()
-                    }
-                ) {
-                    Text("Cancel")
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    TextField(
+                        value = location,
+                        onValueChange = { location = it },
+                        label = { Text("Location") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    TextField(
+                        value = salary,
+                        onValueChange = { salary = it },
+                        label = { Text("Salary") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    TextField(
+                        value = targetedClass,
+                        onValueChange = { targetedClass = it },
+                        label = { Text("Target Class") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             } else {
-                // Edit Button
-                Button(onClick = { isEditing = true }) {
-                    Text("Edit")
-                }
-                // Delete Button
-                Button(
-                    onClick = {
-                        showDeleteConfirmation = true
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                Card(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Delete")
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        DetailRow("Name", tuition.name)
+                        DetailRow("Location", tuition.location)
+                        DetailRow("Salary", "৳${tuition.salary}")
+                        DetailRow("Target Classes", tuition.targetedClass.toString())
+                        DetailRow("Progress", tuition.progress)
+                        DetailRow(
+                            "Start Date",
+                            SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                                .format(Date(tuition.startDateEpochMs))
+                        )
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Reset Button
-        Button(
-            onClick = {
-                viewModel.resetClassCount(tuition.id)
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Reset Class Count")
+        // Action Buttons
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                if (isEditing) {
+                    Button(
+                        onClick = {
+                            val updatedTuition = TuitionModel(
+                                id = tuition.id,
+                                name = name,
+                                location = location,
+                                salary = salary.toDoubleOrNull() ?: 0.0,
+                                targetedClass = targetedClass.toIntOrNull() ?: 0,
+                                classCount = tuition.classCount,
+                                startDateEpochMs = tuition.startDateEpochMs
+                            )
+                            viewModel.updateTuition(updatedTuition)
+                            isEditing = false
+                        }
+                    ) {
+                        Text("Save")
+                    }
+                    OutlinedButton(onClick = { isEditing = false }) {
+                        Text("Cancel")
+                    }
+                } else {
+                    Button(onClick = { isEditing = true }) {
+                        Text("Edit")
+                    }
+                    Button(
+                        onClick = { showDeleteConfirmation = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Delete")
+                    }
+                }
+            }
         }
+
+
+        // Add Class Button
+        item {
+            Button(
+                onClick = { navController.navigate("log_class_screen/$tuitionId") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("➕ Add Class")
+            }
+        }
+
+        // Class Logs Section Header
+        item {
+            Text(
+                text = "Class History (${classLogs.size} classes)",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        // Class Logs List
+        if (classLogs.isEmpty()) {
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No classes logged yet",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        } else {
+            // No .weight() modifier needed here
+            items(classLogs) { classLog ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val classNumber = classLogs.size - classLogs.indexOf(classLog)
+                        Text(
+                            text = "Class #$classNumber",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                                .format(Date(classLog.entryTimestampMs)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }

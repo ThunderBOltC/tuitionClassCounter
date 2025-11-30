@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ju.mad.tuitioncounter.ui.screens.AddTuitionScreen
+import ju.mad.tuitioncounter.ui.screens.LogClassScreen
 import ju.mad.tuitioncounter.ui.screens.TuitionDetailScreen
 import ju.mad.tuitioncounter.ui.screens.TuitionListScreen
 import ju.mad.tuitioncounter.ui.viewmodels.TuitionViewModel
@@ -76,6 +77,15 @@ fun AppNavigation(viewModel: TuitionViewModel) {
                         viewModel = viewModel
                     )
                 }
+                // NEW ROUTE FOR LOG CLASS SCREEN
+                composable("log_class_screen/{tuitionId}") { backStackEntry ->
+                    val tuitionId = backStackEntry.arguments?.getString("tuitionId")?.toLongOrNull() ?: 0L
+                    LogClassScreen(
+                        navController = navController,
+                        tuitionId = tuitionId,
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }
@@ -97,7 +107,6 @@ fun DrawerContent(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Tuitions Button
         Button(
             onClick = {
                 navController.navigate("tuition_list_screen")
@@ -110,7 +119,6 @@ fun DrawerContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // AI Agent Button (Disabled)
         Button(
             onClick = { },
             enabled = false,
@@ -121,7 +129,6 @@ fun DrawerContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Logout Button (Disabled)
         Button(
             onClick = { },
             enabled = false,
