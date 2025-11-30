@@ -25,7 +25,7 @@ interface TuitionRepository {
     suspend fun deleteTuition(tuition: TuitionModel)
 
     // Log a class (insert class log)
-    suspend fun insertClassLog(tuitionId: Long)
+    //suspend fun insertClassLog(tuitionId: Long)
 
     //day6
     // Delete a single class log by its ID
@@ -34,4 +34,7 @@ interface TuitionRepository {
     // Reset the class count for a tuition (reset salary cycle)
     suspend fun resetClassCount(tuitionId: Long)
 
+
+    //for customized classlog entry time
+    suspend fun insertClassLog(tuitionId: Long, timestamp: Long = System.currentTimeMillis())
 }

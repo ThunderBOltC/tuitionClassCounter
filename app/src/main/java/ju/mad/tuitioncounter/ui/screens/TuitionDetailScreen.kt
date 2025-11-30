@@ -259,7 +259,7 @@ fun TuitionDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No Class Conducted Yet",
+                            text = "No classes have been logged yet.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

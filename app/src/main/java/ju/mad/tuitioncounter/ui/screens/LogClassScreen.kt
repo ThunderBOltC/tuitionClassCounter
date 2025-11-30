@@ -1,13 +1,15 @@
 package ju.mad.tuitioncounter.ui.screens
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import ju.mad.tuitioncounter.ui.viewmodels.TuitionViewModel
@@ -20,8 +22,9 @@ fun LogClassScreen(
     tuitionId: Long,
     viewModel: TuitionViewModel
 ) {
+    val context = LocalContext.current
     val tuitionDetails by viewModel.tuitionDetails.collectAsState()
-    val currentTimestamp = remember { System.currentTimeMillis() }
+    var selectedTimestamp by remember { mutableStateOf(System.currentTimeMillis()) }
 
     // Load tuition details
     LaunchedEffect(tuitionId) {
@@ -65,30 +68,69 @@ fun LogClassScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Class Time",
+                    text = "Selected Class Time",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-                        .format(Date(currentTimestamp)),
+                        .format(Date(selectedTimestamp)),
                     style = MaterialTheme.typography.titleLarge
                 )
                 Text(
                     text = SimpleDateFormat("hh:mm a", Locale.getDefault())
-                        .format(Date(currentTimestamp)),
+                        .format(Date(selectedTimestamp)),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Choose Date & Time Button
+        OutlinedButton(
+            onClick = {
+                val calendar = Calendar.getInstance()
+                calendar.timeInMillis = selectedTimestamp
+
+                // Show Date Picker
+                DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        calendar.set(Calendar.YEAR, year)
+                        calendar.set(Calendar.MONTH, month)
+                        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
+                        // Then show Time Picker
+                        TimePickerDialog(
+                            context,
+                            { _, hourOfDay, minute ->
+                                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                                calendar.set(Calendar.MINUTE, minute)
+                                selectedTimestamp = calendar.timeInMillis
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            false
+                        ).show()
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("📅 Choose Date & Time")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Confirm Button
         Button(
             onClick = {
-                viewModel.logClass(tuitionId)
+                viewModel.logClass(tuitionId, selectedTimestamp)
                 navController.popBackStack()
             },
             modifier = Modifier

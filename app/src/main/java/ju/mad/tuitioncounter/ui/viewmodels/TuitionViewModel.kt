@@ -88,14 +88,7 @@ class TuitionViewModel(
     }
 
     // Log a class - THIS IS THE MAIN FUNCTION
-    fun logClass(tuitionId: Long) {
-        viewModelScope.launch {
-            logClassUseCase.execute(tuitionId)
-            getTuitionDetails(tuitionId) // Refresh details to update count
-            getClassLogs(tuitionId) // Refresh logs list
-            getAllTuitions() // Refresh main list
-        }
-    }
+
 
     //day6 reset delete
     fun deleteClassLog(classId: Long) {
@@ -110,6 +103,17 @@ class TuitionViewModel(
             resetClassCountUseCase.execute(tuitionId)
             getTuitionDetails(tuitionId) // Refresh tuition details after reset
             getClassLogs(tuitionId) // Refresh class logs list
+        }
+    }
+
+    //for customized data time class log
+
+    fun logClass(tuitionId: Long, timestamp: Long = System.currentTimeMillis()) {
+        viewModelScope.launch {
+            logClassUseCase.execute(tuitionId, timestamp)
+            getTuitionDetails(tuitionId)
+            getClassLogs(tuitionId)
+            getAllTuitions()
         }
     }
 

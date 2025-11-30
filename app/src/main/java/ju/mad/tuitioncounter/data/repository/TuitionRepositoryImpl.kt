@@ -60,11 +60,11 @@ class TuitionRepositoryImpl(private val tuitionDao: TuitionDao) : TuitionReposit
         tuitionDao.deleteTuition(tuitionEntity)
     }
 
-    // Insert a class log
-    override suspend fun insertClassLog(tuitionId: Long) {
+    // Insert a class log with customized data time
+    override suspend fun insertClassLog(tuitionId: Long, timestamp: Long) {
         val classLog = ClassLogEntity(
             tuitionId = tuitionId,
-            entryTimestampMs = System.currentTimeMillis()
+            entryTimestampMs = timestamp
         )
         tuitionDao.insertClassLog(classLog)
     }
