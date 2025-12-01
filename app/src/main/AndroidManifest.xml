@@ -21,7 +21,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.TuitionCounter">
+            android:theme="@style/Theme.TuitionCounter.Splash">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

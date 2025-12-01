@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="ju.mad.tuitioncounter" />
+                  <option name="mobileSdkAppId" value="1:594141941456:android:8cd387a9dac15629c618d5" />
+                  <option name="projectId" value="tuitionclasscounter" />
+                  <option name="projectNumber" value="594141941456" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
