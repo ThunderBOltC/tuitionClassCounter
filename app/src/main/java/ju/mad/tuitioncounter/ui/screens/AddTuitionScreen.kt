@@ -30,16 +30,30 @@ fun AddTuitionScreen(
     var targetedClass by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf(System.currentTimeMillis()) }
 
+    var isNameError by remember { mutableStateOf(false) }
+    var isLocationError by remember { mutableStateOf(false) }
+    var isSalaryError by remember { mutableStateOf(false) }
+    var isTargetedClassError by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val formattedDate = remember(startDate) {
         SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(startDate))
+    }
+
+    fun validateFields(): Boolean {
+        isNameError = name.isBlank()
+        isLocationError = location.isBlank()
+        isSalaryError = salary.toDoubleOrNull() == null
+        isTargetedClassError = targetedClass.toIntOrNull() == null
+
+        return !isNameError && !isLocationError && !isSalaryError && !isTargetedClassError
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        contentAlignment = Alignment.TopCenter   // 👆 moves form a bit upper
+        contentAlignment = Alignment.TopCenter
     ) {
         Column(
             modifier = Modifier
@@ -56,43 +70,58 @@ fun AddTuitionScreen(
 
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = {
+                    name = it
+                    isNameError = it.isBlank()
+                },
                 label = { Text("Tuition Name") },
                 singleLine = true,
+                isError = isNameError,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
             )
 
             OutlinedTextField(
                 value = location,
-                onValueChange = { location = it },
+                onValueChange = {
+                    location = it
+                    isLocationError = it.isBlank()
+                },
                 label = { Text("Location") },
                 singleLine = true,
+                isError = isLocationError,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
             )
 
             OutlinedTextField(
                 value = salary,
-                onValueChange = { salary = it },
+                onValueChange = {
+                    salary = it
+                    isSalaryError = it.toDoubleOrNull() == null
+                },
                 label = { Text("Salary") },
                 singleLine = true,
+                isError = isSalaryError,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
             )
 
             OutlinedTextField(
                 value = targetedClass,
-                onValueChange = { targetedClass = it },
+                onValueChange = {
+                    targetedClass = it
+                    isTargetedClassError = it.toIntOrNull() == null
+                },
                 label = { Text("Targeted Class") },
                 singleLine = true,
+                isError = isTargetedClassError,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
             )
 
-            // 👉 OutlinedTextField for Start Date (click opens calendar)
             OutlinedTextField(
                 value = formattedDate,
-                onValueChange = { }, // read-only
+                onValueChange = { },
                 label = { Text("Start Date") },
                 singleLine = true,
-                enabled = false, // disables manual typing
+                enabled = false,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -116,19 +145,19 @@ fun AddTuitionScreen(
 
             Button(
                 onClick = {
-                    if (name.isBlank() || location.isBlank() || salary.isBlank() || targetedClass.isBlank()) {
-                        Toast.makeText(context, "Fields cannot be empty!", Toast.LENGTH_SHORT).show()
-                    } else {
+                    if (validateFields()) {
                         val tuition = TuitionModel(
                             name = name,
                             location = location,
-                            salary = salary.toDoubleOrNull() ?: 0.0,
-                            targetedClass = targetedClass.toIntOrNull() ?: 0,
+                            salary = salary.toDouble(),
+                            targetedClass = targetedClass.toInt(),
                             startDateEpochMs = startDate
                         )
                         viewModel.addTuition(tuition)
                         Toast.makeText(context, "Tuition created successfully!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
+                    } else {
+                        Toast.makeText(context, "Please fix the errors!", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

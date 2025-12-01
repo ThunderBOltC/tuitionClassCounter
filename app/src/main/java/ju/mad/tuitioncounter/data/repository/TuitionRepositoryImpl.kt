@@ -70,8 +70,7 @@ class TuitionRepositoryImpl(private val tuitionDao: TuitionDao) : TuitionReposit
     }
 
     override suspend fun deleteClassLog(classId: Long) {
-        // Directly delete the class log based on classId
-        tuitionDao.deleteClassLog(ClassLogEntity(id = classId, tuitionId = 0, entryTimestampMs = 0)) // Use proper values if necessary
+        tuitionDao.deleteClassLogById(classId)
     }
 
 

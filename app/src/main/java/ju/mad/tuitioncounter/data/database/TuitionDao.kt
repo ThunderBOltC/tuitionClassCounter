@@ -51,5 +51,8 @@ interface TuitionDao {
     suspend fun deleteClassLog(log: ClassLogEntity)
     @Query("DELETE FROM class_logs WHERE tuitionId = :tuitionId")
     suspend fun deleteAllClassLogsForTuition(tuitionId: Long)
+// Add this method to your TuitionDao.kt interface
 
+    @Query("DELETE FROM class_logs WHERE id = :classLogId")
+    suspend fun deleteClassLogById(classLogId: Long)
 }

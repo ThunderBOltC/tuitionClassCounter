@@ -10,8 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -19,6 +17,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import ju.mad.tuitioncounter.domain.model.TuitionModel
+import ju.mad.tuitioncounter.ui.navigation.AppNavigation
 import ju.mad.tuitioncounter.ui.viewmodels.TuitionViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,11 +38,9 @@ fun TuitionDetailScreen(
     var salary by remember { mutableStateOf("") }
     var targetedClass by remember { mutableStateOf("") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    // State to track which class log is selected for deletion
     var selectedClassLogId by remember { mutableStateOf<Long?>(null) }
-    // State to track if a press is being held down for animation
     var isPressing by remember { mutableStateOf(false) }
-
+    var showTargetCompletedDialog by remember { mutableStateOf(false) }
 
     // Load data when screen opens
     LaunchedEffect(tuitionId) {
@@ -58,6 +55,9 @@ fun TuitionDetailScreen(
             location = tuition.location
             salary = tuition.salary.toString()
             targetedClass = tuition.targetedClass.toString()
+            if (tuition.classCount >= tuition.targetedClass && tuition.targetedClass > 0) {
+                showTargetCompletedDialog = true
+            }
         }
     }
 
@@ -66,12 +66,15 @@ fun TuitionDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
             title = { Text("Delete Tuition") },
-            text = { Text("Are you sure you want to delete this tuition?") },
+            text = { Text("Are you sure you want to delete this tuition? All class logs will also be deleted.") },
             confirmButton = {
                 Button(
                     onClick = {
-                        tuitionDetails?.let { viewModel.deleteTuition(it) }
+                        val toDelete = tuitionDetails
                         showDeleteConfirmation = false
+                        // First request deletion in ViewModel
+                        toDelete?.let { viewModel.deleteTuition(it) }
+                        // Then navigate away (single pop only here)
                         navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -90,6 +93,7 @@ fun TuitionDetailScreen(
     }
 
     if (tuitionDetails == null) {
+        // Show a loading/empty state until we have data (or navigated away)
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -101,12 +105,33 @@ fun TuitionDetailScreen(
 
     val tuition = tuitionDetails!!
 
-    // Use LazyColumn for the entire screen to make it all scrollable
+    if (showTargetCompletedDialog) {
+        AlertDialog(
+            onDismissRequest = { showTargetCompletedDialog = false },
+            title = { Text("Target Completed!") },
+            text = { Text("You have completed the targeted number of classes for this tuition. Do you want to reset the class count?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.resetClassCount(tuitionId)
+                        showTargetCompletedDialog = false
+                    }
+                ) {
+                    Text("Reset")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTargetCompletedDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
-            // Deselect log when clicking outside
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
                     selectedClassLogId = null
@@ -216,7 +241,7 @@ fun TuitionDetailScreen(
             }
         }
 
-        // This is a good place for the "Reset Class Count" button
+        // Reset Class Count Button
         item {
             OutlinedButton(
                 onClick = { viewModel.resetClassCount(tuitionId) },
@@ -226,11 +251,16 @@ fun TuitionDetailScreen(
             }
         }
 
-
         // Add Class Button
         item {
             Button(
-                onClick = { navController.navigate("log_class_screen/$tuitionId") },
+                onClick = {
+                    if (tuition.classCount >= tuition.targetedClass && tuition.targetedClass > 0) {
+                        showTargetCompletedDialog = true
+                    } else {
+                        navController.navigate("log_class_screen/$tuitionId")
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -270,7 +300,6 @@ fun TuitionDetailScreen(
             items(classLogs, key = { it.id }) { classLog ->
                 val isSelected = classLog.id == selectedClassLogId
 
-                // Animation values for the "poppy" effect
                 val scale by animateFloatAsState(
                     targetValue = if (isSelected && isPressing) 1.03f else 1f,
                     label = "scale"
@@ -280,26 +309,23 @@ fun TuitionDetailScreen(
                     label = "elevation"
                 )
 
-
                 Card(
                     elevation = CardDefaults.cardElevation(defaultElevation = elevation),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .scale(scale) // Apply the scale animation
+                        .scale(scale)
                         .pointerInput(classLog.id) {
                             detectTapGestures(
                                 onLongPress = {
                                     isPressing = true
                                     selectedClassLogId = classLog.id
                                 },
-                                // Reset states when the press is released
                                 onPress = {
                                     isPressing = true
                                     awaitRelease()
                                     isPressing = false
                                 },
                                 onTap = {
-                                    // Tapping deselects any item
                                     selectedClassLogId = null
                                 }
                             )
@@ -326,12 +352,11 @@ fun TuitionDetailScreen(
                             )
                         }
 
-                        // Show delete icon if this item is selected
                         if (isSelected) {
                             IconButton(onClick = {
-                                // This is where the delete logic from your snippet goes.
-                                viewModel.deleteClassLog(classLog.id,tuitionId)
-                                selectedClassLogId = null // Deselect after deleting
+                                // Pass both classId and tuitionId to the viewModel
+                                viewModel.deleteClassLog(classLog.id, tuitionId)
+                                selectedClassLogId = null
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,

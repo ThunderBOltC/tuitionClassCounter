@@ -18,10 +18,9 @@ class TuitionViewModel(
     private val addTuitionUseCase: AddTuitionUseCase,
     private val updateTuitionUseCase: UpdateTuitionUseCase,
     private val deleteTuitionUseCase: DeleteTuitionUseCase,
-
     private val logClassUseCase: LogClassUseCase,
-    private val deleteClassLogUseCase: DeleteClassLogUseCase, // New use case day6
-    private val resetClassCountUseCase: ResetClassCountUseCase, // New use case day6
+    private val deleteClassLogUseCase: DeleteClassLogUseCase,
+    private val resetClassCountUseCase: ResetClassCountUseCase,
 ) : ViewModel() {
 
     // Tuition List State
@@ -75,46 +74,45 @@ class TuitionViewModel(
         viewModelScope.launch {
             updateTuitionUseCase.execute(tuition)
             getAllTuitions()
-            tuition.id.let { getTuitionDetails(it) }
+            getTuitionDetails(tuition.id)
         }
     }
 
-    // Delete tuition
+    // Delete tuition - FIXED: No longer sets _tuitionDetails to null
+    // Navigation is controlled by the UI after this completes
     fun deleteTuition(tuition: TuitionModel) {
         viewModelScope.launch {
             deleteTuitionUseCase.execute(tuition)
+            // Just refresh the list, UI handles navigation
             getAllTuitions()
         }
     }
 
-    // Log a class - THIS IS THE MAIN FUNCTION
-
-
-    //day6 reset delete
-    fun deleteClassLog(classId: Long,tuitionId: Long) {
+    // Delete a single class log and refresh using correct tuitionId
+    fun deleteClassLog(classLogId: Long, tuitionId: Long) {
         viewModelScope.launch {
-            deleteClassLogUseCase.execute(classId)
+            deleteClassLogUseCase.execute(classLogId)
             // Refresh class logs and tuition details after deletion
-            getTuitionDetails(classId)
+            getClassLogs(tuitionId)
+            getTuitionDetails(tuitionId)
         }
     }
+
+    // Reset class count
     fun resetClassCount(tuitionId: Long) {
         viewModelScope.launch {
             resetClassCountUseCase.execute(tuitionId)
-            getTuitionDetails(tuitionId) // Refresh tuition details after reset
-            getClassLogs(tuitionId) // Refresh class logs list
+            getTuitionDetails(tuitionId)
+            getClassLogs(tuitionId)
         }
     }
 
-    //for customized data time class log
-
+    // Log a class with customized timestamp
     fun logClass(tuitionId: Long, timestamp: Long = System.currentTimeMillis()) {
         viewModelScope.launch {
             logClassUseCase.execute(tuitionId, timestamp)
             getTuitionDetails(tuitionId)
             getClassLogs(tuitionId)
-            //getAllTuitions()
         }
     }
-
 }
