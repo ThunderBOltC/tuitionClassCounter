@@ -53,7 +53,7 @@ object NotificationHelper {
         // Build notification
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Class Reminder")
+            .setContentTitle("Class Count Reminder")
             .setContentText("Did you go to any of your Tuition today?")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
