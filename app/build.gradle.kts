@@ -121,5 +121,8 @@ dependencies {
     // Gson for JSON parsing
     implementation(libs.gson)
 
+    //for deleting and copy aimessages
+    implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
+
 
 }

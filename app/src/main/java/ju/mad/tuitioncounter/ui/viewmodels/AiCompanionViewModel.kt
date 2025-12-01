@@ -25,6 +25,9 @@ class AiCompanionViewModel(
             ChatMessage(content = "Hello! How can I help you manage your tuitions today?", isUser = false)
         )
     }
+    fun deleteMessage(timestamp: Long) {
+        _chatMessages.value = _chatMessages.value.filterNot { it.timestamp == timestamp }
+    }
 
     fun sendMessage(userMessage: String, apiKey: String) {
         // Create and add the user's message immediately
