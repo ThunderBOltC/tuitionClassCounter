@@ -1,3 +1,4 @@
+// File: MainActivity.kt
 package ju.mad.tuitioncounter
 
 import android.Manifest
@@ -8,16 +9,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import com.google.firebase.auth.FirebaseAuth
+import ju.mad.tuitioncounter.data.auth.AuthRepositoryImpl
 import ju.mad.tuitioncounter.data.database.TuitionDatabase
-// FIX: Import the new repository
 import ju.mad.tuitioncounter.data.repository.AiRepositoryImpl
 import ju.mad.tuitioncounter.data.repository.TuitionRepositoryImpl
-import ju.mad.tuitioncounter.data.service.AiService
 import ju.mad.tuitioncounter.data.service.RetrofitInstance
 import ju.mad.tuitioncounter.domain.usecase.*
 import ju.mad.tuitioncounter.ui.navigation.AppNavigation
 import ju.mad.tuitioncounter.ui.theme.TuitionCounterTheme
 import ju.mad.tuitioncounter.ui.viewmodels.AiCompanionViewModel
+import ju.mad.tuitioncounter.ui.viewmodels.AuthViewModel
 import ju.mad.tuitioncounter.ui.viewmodels.TuitionViewModel
 
 class MainActivity : ComponentActivity() {
@@ -25,9 +27,7 @@ class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permission granted, you can add any logic here if needed.
-        }
+        // Permission granted callback
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,12 +47,14 @@ class MainActivity : ComponentActivity() {
         // Initialize Database and Repositories
         val tuitionDao = TuitionDatabase.getDatabase(applicationContext).tuitionDao()
         val tuitionRepository = TuitionRepositoryImpl(tuitionDao)
-        // FIX: Create an instance of AiRepositoryImpl
+
         val aiService = RetrofitInstance.api
         val aiRepository = AiRepositoryImpl(aiService)
 
+        // Initialize Auth Repository
+        val authRepository = AuthRepositoryImpl(FirebaseAuth.getInstance())
 
-        // Initialize Use Cases
+        // Initialize Tuition Use Cases
         val getTuitionListUseCase = GetTuitionListUseCase(tuitionRepository)
         val getTuitionDetailsUseCase = GetTuitionDetailsUseCase(tuitionRepository)
         val getClassLogsUseCase = GetClassLogsUseCase(tuitionRepository)
@@ -62,11 +64,16 @@ class MainActivity : ComponentActivity() {
         val logClassUseCase = LogClassUseCase(tuitionRepository)
         val deleteClassLogUseCase = DeleteClassLogUseCase(tuitionRepository)
         val resetClassCountUseCase = ResetClassCountUseCase(tuitionRepository)
-        // FIX: Pass the newly created aiRepository to the use case
         val getAiResponseUseCase = GetAiResponseUseCase(aiRepository)
 
+        // Initialize Auth Use Cases
+        val signUpUseCase = SignUpUseCase(authRepository)
+        val loginUseCase = LoginUseCase(authRepository)
+        val logoutUseCase = LogoutUseCase(authRepository)
+        val getCurrentUserUseCase = GetCurrentUserUseCase(authRepository)
+        val sendPasswordResetUseCase = SendPasswordResetUseCase(authRepository)
 
-        // Initialize ViewModel with all use cases
+        // Initialize ViewModels
         val tuitionViewModel = TuitionViewModel(
             getTuitionListUseCase,
             getTuitionDetailsUseCase,
@@ -78,12 +85,21 @@ class MainActivity : ComponentActivity() {
             deleteClassLogUseCase,
             resetClassCountUseCase
         )
-        val aiCompanionViewModel= AiCompanionViewModel(getAiResponseUseCase)
+
+        val aiCompanionViewModel = AiCompanionViewModel(getAiResponseUseCase)
+
+        val authViewModel = AuthViewModel(
+            signUpUseCase,
+            loginUseCase,
+            logoutUseCase,
+            getCurrentUserUseCase,
+            sendPasswordResetUseCase
+        )
 
         setContent {
             TuitionCounterTheme {
-                // FIX: Correctly pass both ViewModels to the AppNavigation composable
                 AppNavigation(
+                    authViewModel = authViewModel,
                     tuitionViewModel = tuitionViewModel,
                     aiCompanionViewModel = aiCompanionViewModel
                 )
